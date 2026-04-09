@@ -26,6 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
 
     Route::get('/layups/show/{id}', [CltLayupController::class, 'show'])->name('layups.show');
+    Route::delete('/layups/destroy/{id}', [CltLayupController::class, 'destroy'])->name('layups.destroy');
     Route::post('/layups/create', [CltLayupController::class, 'store'])->name('layups.store');
 
     Route::post('/layers/create', [CltLayerController::class, 'store'])->name('layers.store');

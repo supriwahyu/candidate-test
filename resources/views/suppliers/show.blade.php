@@ -1,22 +1,22 @@
 <x-app-layout>
-    <div class="p-6 bg-gray-100 min-h-screen">
+    <div class="p-6 bg-gray-100 min-h-screen dark:bg-gray-900 dark:text-gray-300">
 
         <!-- Breadcrumb -->
-        <div class="text-sm text-gray-500 mb-4">
-            Suppliers / <span class="text-gray-700 font-medium">{{ $supplier->name }}</span>
+        <div class="text-sm text-gray-500 mb-4 dark:bg-gray-900 dark:text-gray-300">
+            Suppliers / <span class="text-gray-700 font-medium dark:text-gray-300">{{ $supplier->name }}</span>
         </div>
 
         <!-- Header Card -->
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 dark:bg-gray-800 dark:text-gray-300">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-semibold text-gray-800">
+                    <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-300">
                         {{ $supplier->name }}
                         <span class="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
                             Active Partner
                         </span>
                     </h1>
-                    <p class="text-sm text-gray-500 mt-1">
+                    <p class="text-sm text-gray-500 mt-1 dark:text-gray-300">
                         ID : {{ $supplier->code }}
                     </p>
                 </div>
@@ -59,7 +59,7 @@
         </div>
 
         <!-- Table Section -->
-        <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="bg-white rounded-xl shadow-sm p-6 dark:bg-gray-800">
 
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-800">
@@ -85,7 +85,7 @@
             <!-- Table -->
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left border rounded-lg overflow-hidden">
-                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase dark:bg-gray-800">
                         <tr>
                             <th class="px-4 py-3">Layup ID</th>
                             <th class="px-4 py-3">Name</th>
@@ -100,12 +100,12 @@
                     <tbody class="divide-y">
 
                         @foreach ($supplier->layups as $layup)
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td class="px-4 py-3">{{ $layup->code ?? '-' }}</td>
                             <td class="px-4 py-3">{{ $layup->name }}</td>
                             <td class="px-4 py-3">{{ $layup->thickness ?? '-' }}</td>
                             <td class="px-4 py-3">
-                                <span class="px-2 py-1 text-xs bg-gray-100 rounded">
+                                <span class="px-2 py-1 text-xs rounded">
                                     {{ $layup->ply_count ?? '-' }}
                                 </span>
                             </td>
@@ -131,6 +131,19 @@
                                    class="text-blue-600 hover:underline text-sm">
                                     View
                                 </a>
+
+                                <!-- Delete -->
+                                <form method="POST" action="{{ route('layups.destroy', $layup->id) }}"
+                                      onsubmit="return confirm('Delete this layup?')">
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button type="submit"
+                                        class="text-red-600 hover:underline text-sm">
+                                        Delete
+                                    </button>
+                                </form>
+
                             </td>
                         </tr>
                         @endforeach
@@ -169,25 +182,6 @@
                 <input type="hidden" name="supplier_id" value="{{ $supplier->id }}">
 
                 <div class="space-y-4">
-
-                    <div>
-                        <label class="text-sm text-gray-600 dark:text-gray-300">Supplier</label>
-                        
-                        <select name="supplier_id"
-                            class="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            required>
-                            
-                            <option value="">-- Select Supplier --</option>
-
-                            @foreach ($suppliers as $sup)
-                                <option value="{{ $sup->id }}"
-                                    {{ $sup->id == $supplier->id ? 'selected' : '' }}>
-                                    {{ $sup->name }}
-                                </option>
-                            @endforeach
-
-                        </select>
-                    </div>
 
                     <div>
                         <label class="text-sm text-gray-600 dark:text-gray-300">Name</label>
@@ -244,5 +238,13 @@
     function closeModal() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+    }
+</script>
+
+<script>
+    function confirmDelete(id) {
+        if (confirm('Are you sure you want to delete this layup?')) {
+            document.getElementById('delete-form-' + id).submit();
+        }
     }
 </script>
