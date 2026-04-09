@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/layers/create', [CltLayerController::class, 'store'])->name('layers.store');
     Route::delete('/layers/destroy/{id}', [CltLayerController::class, 'destroy'])->name('layers.destroy');
+    Route::put('/layers/update/{id}', [CltLayerController::class, 'update'])->name('layers.update');
 });
 
 require __DIR__.'/auth.php';

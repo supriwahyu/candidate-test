@@ -96,6 +96,12 @@
                             <td>{{ $layer->width }}mm</td>
                             <td>{{ $layer->angle }}°</td>
                             <td>
+                                <!-- Edit -->
+                                <button 
+                                    onclick='openEditLayerModal(@json($layer))'
+                                    class="text-yellow-600 hover:underline text-xs">
+                                    edit
+                                </button>
                                 <!-- Delete -->
                                 <form method="POST"
                                       action="{{ route('layers.destroy', $layer->id) }}"
@@ -235,6 +241,77 @@
         </div>
     </div>
 
+    <!-- Edit Layer Modal -->
+    <div id="editLayerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-xl shadow-lg p-6 relative">
+
+            <!-- Close -->
+            <button onclick="closeEditLayerModal()"
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
+                ✕
+            </button>
+
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                Edit Layer
+            </h2>
+
+            <form id="editLayerForm" method="POST">
+                @csrf
+                @method('PUT')
+
+                <div class="space-y-4">
+
+                    <!-- Order -->
+                    <div>
+                        <label class="text-sm text-gray-600 dark:text-gray-300">Order</label>
+                        <input type="number" name="layer_order" id="edit_layer_order"
+                            class="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    </div>
+
+                    <!-- Thickness -->
+                    <div>
+                        <label class="text-sm text-gray-600 dark:text-gray-300">Thickness</label>
+                        <input type="number" name="thickness" id="edit_thickness"
+                            class="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    </div>
+
+                    <!-- Width -->
+                    <div>
+                        <label class="text-sm text-gray-600 dark:text-gray-300">Width</label>
+                        <input type="number" name="width" id="edit_width"
+                            class="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    </div>
+
+                    <!-- Angle -->
+                    <div>
+                        <label class="text-sm text-gray-600 dark:text-gray-300">Angle</label>
+                        <select name="angle" id="edit_angle"
+                            class="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="0">0°</option>
+                            <option value="90">90°</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" onclick="closeEditLayerModal()"
+                        class="px-4 py-2 text-sm border rounded-lg">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg">
+                        Update
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
 </x-app-layout>
 
 <script>
@@ -268,5 +345,40 @@
     // ESC key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeLayerModalFunc();
+    });
+</script>
+
+<script>
+    function openEditLayerModal(layer) {
+        const modal = document.getElementById('editLayerModal');
+        const form = document.getElementById('editLayerForm');
+
+        // set dynamic action
+        form.action = `/layers/update/${layer.id}`;
+
+        // fill data
+        document.getElementById('edit_layer_order').value = layer.layer_order ?? '';
+        document.getElementById('edit_thickness').value = layer.thickness ?? '';
+        document.getElementById('edit_width').value = layer.width ?? '';
+        document.getElementById('edit_angle').value = parseInt(layer.angle) ?? 0;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeEditLayerModal() {
+        const modal = document.getElementById('editLayerModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // click outside
+    document.getElementById('editLayerModal').addEventListener('click', function(e){
+        if(e.target === this) closeEditLayerModal();
+    });
+
+    // ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeEditLayerModal();
     });
 </script>
