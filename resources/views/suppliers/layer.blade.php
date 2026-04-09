@@ -91,10 +91,10 @@
 
                         @foreach ($layup->layers as $layer)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td class="py-2">{{ $loop->iteration }}</td>
-                            <td>{{ $layer->thickness }}mm</td>
-                            <td>{{ $layer->width }}mm</td>
-                            <td>{{ $layer->angle }}°</td>
+                            <td class="py-2 dark:text-gray-50">{{ $loop->iteration }}</td>
+                            <td class="dark:text-gray-50">{{ $layer->thickness }}mm</td>
+                            <td class="dark:text-gray-50">{{ $layer->width }}mm</td>
+                            <td class="dark:text-gray-50">{{ $layer->angle }}°</td>
                             <td>
                                 <!-- Edit -->
                                 <button 
