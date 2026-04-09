@@ -4,25 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::latest()->paginate(10);
+        try {
+            $perPage = $request->query('perPage', 10);
+            $search = $request->query('search');
 
-        return view('suppliers.index', compact('suppliers'));
-    }
+            $suppliers = DB::table('suppliers')
+                ->when($search, function (Builder $query) use ($search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->orWhere('suppliers.name', 'like', "%{$search}%");
+                    });
+                })
+                ->orderBy('suppliers.created_at', 'desc')
+                ->paginate((int) $perPage);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+            return view('suppliers.index', compact('suppliers'));
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 400);
+        }
     }
 
     /**
@@ -30,7 +40,30 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            DB::beginTransaction();
+            $data = $request->validate([
+                'name'  => 'required|string|max:20',
+            ]);
+
+            $item = Supplier::create([
+                'name'  => $data['name'],
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('suppliers.index')
+                ->with('success', 'Supplier created successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to create supplier.')
+                ->withInput();
+        }
     }
 
     /**
@@ -52,9 +85,34 @@ class SupplierController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Supplier $supplier)
+    public function update(Request $request, string $id)
     {
-        //
+        try {
+            DB::beginTransaction();
+            $data = $request->validate([
+                'name'  => 'required|string|max:20',
+            ]);
+
+            $supplier = Supplier::findOrFail($id);
+
+            $supplier->update([
+                'name'  => $data['name'],
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('suppliers.index')
+                ->with('success', 'Supplier created successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to create supplier.')
+                ->withInput();
+        }
     }
 
     /**
@@ -62,6 +120,26 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
-        //
+        try {
+            DB::beginTransaction();
+            
+            $supplier = Supplier::findOrFail($id);
+
+            $supplier->delete();
+
+            DB::commit();
+
+            return redirect()
+                ->route('suppliers.index')
+                ->with('success', 'Supplier created successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to create supplier.')
+                ->withInput();
+        }
     }
 }

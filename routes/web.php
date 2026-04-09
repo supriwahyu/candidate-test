@@ -18,7 +18,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
-    Route::get('/suppliers/create', [SupplierController::class, 'store'])->name('suppliers.create');
+    Route::post('/suppliers/create', [SupplierController::class, 'store'])->name('suppliers.create');
+    Route::put('/suppliers/edit/{id}', [SupplierController::class, 'update'])->name('suppliers.edit');
+    Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
 });
 
 require __DIR__.'/auth.php';
