@@ -24,6 +24,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/suppliers/edit/{id}', [SupplierController::class, 'update'])->name('suppliers.edit');
     Route::get('/suppliers/show/{id}', [SupplierController::class, 'show'])->name('suppliers.show');
     Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
+    Route::post('/suppliers/import/{id}', [SupplierController::class, 'import'])->name('suppliers.import');
+    Route::get('suppliers/export/{id}', [SupplierController::class, 'export'])->name('suppliers.export');
 
     Route::get('/layups/show/{id}', [CltLayupController::class, 'show'])->name('layups.show');
     Route::delete('/layups/destroy/{id}', [CltLayupController::class, 'destroy'])->name('layups.destroy');

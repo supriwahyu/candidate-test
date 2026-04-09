@@ -7,6 +7,11 @@ use App\Models\CltLayup;
 use App\Models\CltLayer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\SuppliersImport;
+use App\Models\Supplier;
+use Illuminate\Support\Facades\Log;
+use App\Exports\SuppliersExport;
 
 class SupplierController extends Controller
 {
@@ -148,5 +153,31 @@ class SupplierController extends Controller
                 ->with('error', 'Failed to create supplier.')
                 ->withInput();
         }
+    }
+
+    public function import(UserRequest $request) 
+    {
+        try{
+
+            Excel::import(new SuppliersImport, $request->file('file'));
+
+            return response()->json(['data'=>'Supplier imported successfully.',201]);
+
+        }catch(\Exception $ex){
+
+            Log::info($ex);
+
+            return response()->json(['data'=>'Some error has occur.',400]);
+
+        }
+        
+    }
+
+     /**
+    * @return \Illuminate\Support\Collection
+    */
+    public function export() 
+    {
+        return Excel::download(new SuppliersExport, 'suppliers.xlsx');
     }
 }
