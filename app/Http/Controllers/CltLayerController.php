@@ -28,7 +28,17 @@ class CltLayerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'layup_id' => 'required|exists:clt_layups,id',
+            'layer_order' => 'required|string|max:255',
+            'thickness' => 'required|string|max:255',
+            'width' => 'required|string|max:255',
+            'angle' => 'required|string|max:255',
+        ]);
+
+        CltLayer::create($data);
+
+        return back()->with('success', 'layer added!');
     }
 
     /**

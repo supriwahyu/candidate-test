@@ -41,9 +41,12 @@ class CltLayupController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(CltLayup $cltLayup)
+    public function show(string $id)
     {
-        //
+        $layup = CltLayup::with('layers')->findOrFail($id);
+        $layups = CltLayup::all();
+
+        return view('suppliers.layer', compact('layup', 'layups'));
     }
 
     /**

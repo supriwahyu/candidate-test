@@ -15,4 +15,9 @@ class CltLayup extends Model
         'supplier_id',
         'name',
     ];
+
+    public function layers()
+    {
+        return $this->hasMany(CltLayer::class, 'layup_id', 'id');
+    }
 }

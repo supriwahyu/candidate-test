@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CltLayupController;
+use App\Http\Controllers\CltLayerController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,7 +25,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/suppliers/show/{id}', [SupplierController::class, 'show'])->name('suppliers.show');
     Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
 
+    Route::get('/layups/show/{id}', [CltLayupController::class, 'show'])->name('layups.show');
     Route::post('/layups/create', [CltLayupController::class, 'store'])->name('layups.store');
+
+    Route::post('/layers/create', [CltLayerController::class, 'store'])->name('layers.store');
 });
 
 require __DIR__.'/auth.php';

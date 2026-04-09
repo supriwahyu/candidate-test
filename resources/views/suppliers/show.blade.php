@@ -127,9 +127,10 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                <button class="text-blue-600 hover:underline text-sm">
+                                <a href="{{ route('layups.show', $layup->id) }}"
+                                   class="text-blue-600 hover:underline text-sm">
                                     View
-                                </button>
+                                </a>
                             </td>
                         </tr>
                         @endforeach
