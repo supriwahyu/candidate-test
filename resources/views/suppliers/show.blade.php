@@ -69,12 +69,14 @@
                 </h2>
 
                 <div class="flex gap-2">
-                    <button class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-100">
+                    <button onclick="openImportModal()"
+                        class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-100">
                         ⬆ Import
                     </button>
-                    <button class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-100">
+                    <a href="{{ route('suppliers.export', $supplier->id) }}"
+                       class="px-3 py-2 text-sm border rounded-lg hover:bg-gray-100 inline-block">
                         ⬇ Export
-                    </button>
+                    </a>
                     <button 
                         id="openModalBtn"
                         class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -307,6 +309,85 @@
         </div>
     </div>
 
+    <!-- Modal Overlay -->
+    <div id="importModal"
+         class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+
+        <div class="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 relative">
+
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold">Import Layout Data</h2>
+                <button onclick="closeImportModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+
+            <!-- Form -->
+            <form method="POST"
+                  action="{{ route('suppliers.import', $supplier->id) }}"
+                  enctype="multipart/form-data">
+                @csrf
+
+                <!-- Upload Area -->
+                <label class="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer block hover:bg-gray-50">
+                    <input type="file" name="file" class="hidden" required>
+
+                    <div class="text-gray-500">
+                        <div class="text-2xl mb-2">☁️</div>
+                        <p class="text-sm font-medium">Click to upload or drag and drop</p>
+                        <p class="text-xs text-gray-400">CSV or JSON up to 10MB</p>
+                    </div>
+                </label>
+
+                <!-- Conflict Strategy -->
+                <div class="mt-4">
+                    <label class="text-sm font-medium text-gray-700">
+                        Conflict Resolution Strategy
+                    </label>
+
+                    <select name="strategy"
+                            class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
+                        <option value="skip">Skip conflicts (Default)</option>
+                        <option value="overwrite">Overwrite existing</option>
+                        <option value="merge">Merge data</option>
+                    </select>
+                </div>
+
+                <!-- Dry Run -->
+                <div class="mt-4 flex items-start gap-2 border rounded-lg p-3">
+                    <input type="checkbox" name="dry_run" value="1" class="mt-1">
+                    <div>
+                        <p class="text-sm font-medium">Run as Dry Run</p>
+                        <p class="text-xs text-gray-500">
+                            Simulate import without saving changes
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Conflict Alert -->
+                <div class="mt-4 bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm">
+                    ⚠ Potential Conflicts Detected <br>
+                    <span class="text-xs">
+                        Some data may differ from existing records.
+                    </span>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button"
+                            onclick="closeImportModal()"
+                            class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                            class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        Confirm Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </x-app-layout>
 
 <script>
@@ -412,4 +493,15 @@
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeEditLayupModal();
     });
+</script>
+
+<script>
+    function openImportModal() {
+        document.getElementById('importModal').classList.remove('hidden');
+        document.getElementById('importModal').classList.add('flex');
+    }
+
+    function closeImportModal() {
+        document.getElementById('importModal').classList.add('hidden');
+    }
 </script>

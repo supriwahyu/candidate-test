@@ -6,9 +6,17 @@ use App\Models\Supplier;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 
-class SuppliersImport implements ToModel
+class SuppliersImport implements ToModel, WithHeadingRow, WithCustomCsvSettings
 {
+    public function getCsvSettings(): array
+    {
+        return [
+            'delimiter' => ',',
+        ];
+    }
+    
     /**
     * @param array $row
     *
@@ -29,7 +37,7 @@ class SuppliersImport implements ToModel
     public function rules(): array
     {
         return [
-            'name' => 'required',
+            '*.name' => 'required|string|max:255',
         ];
     }
 }

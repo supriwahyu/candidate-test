@@ -8,8 +8,8 @@ use App\Models\CltLayer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Requests\SupplierRequest;
 use App\Imports\SuppliersImport;
-use App\Models\Supplier;
 use Illuminate\Support\Facades\Log;
 use App\Exports\SuppliersExport;
 
@@ -155,7 +155,7 @@ class SupplierController extends Controller
         }
     }
 
-    public function import(UserRequest $request) 
+    public function import(SupplierRequest $request) 
     {
         try{
 
