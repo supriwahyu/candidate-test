@@ -44,25 +44,24 @@ class CltLayupController extends Controller
     public function show(string $id)
     {
         $layup = CltLayup::with('layers')->findOrFail($id);
-        $layups = CltLayup::all();
 
-        return view('suppliers.layer', compact('layup', 'layups'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(CltLayup $cltLayup)
-    {
-        //
+        return view('suppliers.layer', compact('layup'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, CltLayup $cltLayup)
+    public function update(Request $request, string $id)
     {
-        //
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $layup = CltLayup::findOrFail($id);
+
+        $layup->update($data);
+
+        return back()->with('success', 'Layup added!');
     }
 
     /**

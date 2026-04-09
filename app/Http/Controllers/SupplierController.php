@@ -74,9 +74,8 @@ class SupplierController extends Controller
     public function show(string $id)
     {
         $supplier = Supplier::with('layups')->findOrFail($id);
-        $suppliers = Supplier::all();
 
-        return view('suppliers.show', compact('supplier', 'suppliers'));
+        return view('suppliers.show', compact('supplier'));
     }
 
     /**
@@ -99,7 +98,7 @@ class SupplierController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('suppliers.index')
+                ->back()
                 ->with('success', 'Supplier created successfully.');
 
         } catch (\Exception $e) {

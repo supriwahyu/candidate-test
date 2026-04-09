@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/layups/show/{id}', [CltLayupController::class, 'show'])->name('layups.show');
     Route::delete('/layups/destroy/{id}', [CltLayupController::class, 'destroy'])->name('layups.destroy');
+    Route::put('/layups/update/{id}', [CltLayupController::class, 'update'])->name('layups.update');
     Route::post('/layups/create', [CltLayupController::class, 'store'])->name('layups.store');
 
     Route::post('/layers/create', [CltLayerController::class, 'store'])->name('layers.store');

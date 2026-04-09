@@ -17,11 +17,13 @@
                         </span>
                     </h1>
                     <p class="text-sm text-gray-500 mt-1 dark:text-gray-300">
-                        ID : {{ $supplier->code }}
+                        ID : {{ $supplier->name }}
                     </p>
                 </div>
 
-                <button class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100">
+                <button 
+                    id="openEditSupplierModal"
+                    class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                     ✏️ Edit Supplier
                 </button>
             </div>
@@ -30,29 +32,29 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
                 <div class="border rounded-lg p-4">
                     <p class="text-xs text-gray-400 mb-1">NAME</p>
-                    <p class="text-sm text-gray-700">
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
                         {{ $supplier->name }}
                     </p>
                 </div>
 
                 <div class="border rounded-lg p-4">
                     <p class="text-xs text-gray-400 mb-1">LOCATION</p>
-                    <p class="text-sm text-gray-700">
-                        {{ $supplier->location }}
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
+                        {{ $supplier->location ?? '-' }}
                     </p>
                 </div>
 
                 <div class="border rounded-lg p-4">
                     <p class="text-xs text-gray-400 mb-1">MATERIAL CERTIFICATIONS</p>
-                    <p class="text-sm text-gray-700">
-                        {{ $supplier->certification }}
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
+                        {{ $supplier->certification ?? '-' }}
                     </p>
                 </div>
 
                 <div class="border rounded-lg p-4">
                     <p class="text-xs text-gray-400 mb-1">LAST AUDIT DATE</p>
-                    <p class="text-sm text-gray-700">
-                        {{ $supplier->last_audit_date }}
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
+                        {{ $supplier->last_audit_date ?? '-' }}
                     </p>
                 </div>
             </div>
@@ -132,6 +134,13 @@
                                     View
                                 </a>
 
+                                <!-- Edit -->
+                                <button 
+                                    onclick='openEditLayupModal(@json($layup))'
+                                    class="text-yellow-600 hover:underline text-sm">
+                                    Edit
+                                </button>
+
                                 <!-- Delete -->
                                 <form method="POST" action="{{ route('layups.destroy', $layup->id) }}"
                                       onsubmit="return confirm('Delete this layup?')">
@@ -208,6 +217,96 @@
         </div>
     </div>
 
+    <!-- Edit Supplier Modal -->
+    <div id="editSupplierModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-xl shadow-lg p-6 relative">
+
+            <!-- Close -->
+            <button id="closeEditSupplierModal"
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
+                ✕
+            </button>
+
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                Edit Supplier
+            </h2>
+
+            <form method="POST" action="{{ route('suppliers.edit', $supplier->id) }}">
+                @csrf
+                @method('PUT')
+
+                <!-- Name -->
+                <div>
+                    <label class="text-sm text-gray-600 dark:text-gray-300">Name</label>
+                    <input type="text" name="name"
+                        value="{{ $supplier->name }}"
+                        class="w-full mt-1 px-3 py-2 border rounded-lg 
+                               dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        required>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" id="cancelEditSupplierModal"
+                        class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        Update
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Edit Layup Modal -->
+    <div id="editLayupModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-xl shadow-lg p-6 relative">
+
+            <!-- Close -->
+            <button onclick="closeEditLayupModal()"
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
+                ✕
+            </button>
+
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                Edit Layup
+            </h2>
+
+            <form id="editLayupForm" method="POST">
+                @csrf
+                @method('PUT')
+
+                <!-- Name -->
+                <div class="mb-4">
+                    <label class="text-sm text-gray-600 dark:text-gray-300">Name</label>
+                    <input type="text" name="name" id="edit_name"
+                        class="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        required>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeEditLayupModal()"
+                        class="px-4 py-2 text-sm border rounded-lg">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                        class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg">
+                        Update
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
 </x-app-layout>
 
 <script>
@@ -247,4 +346,70 @@
             document.getElementById('delete-form-' + id).submit();
         }
     }
+</script>
+
+<script>
+    const editModal = document.getElementById('editSupplierModal');
+    const openEditBtn = document.getElementById('openEditSupplierModal');
+    const closeEditBtn = document.getElementById('closeEditSupplierModal');
+    const cancelEditBtn = document.getElementById('cancelEditSupplierModal');
+
+    // Open
+    openEditBtn.addEventListener('click', () => {
+        editModal.classList.remove('hidden');
+        editModal.classList.add('flex');
+    });
+
+    // Close
+    function closeEditModal() {
+        editModal.classList.add('hidden');
+        editModal.classList.remove('flex');
+    }
+
+    closeEditBtn.addEventListener('click', closeEditModal);
+    cancelEditBtn.addEventListener('click', closeEditModal);
+
+    // Click outside
+    editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) {
+            closeEditModal();
+        }
+    });
+
+    // ESC key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeEditModal();
+    });
+</script>
+
+<script>
+    function openEditLayupModal(layup) {
+        const modal = document.getElementById('editLayupModal');
+        const form = document.getElementById('editLayupForm');
+
+        // set form action dynamically
+        form.action = `/layups/update/${layup.id}`;
+
+        // fill inputs
+        document.getElementById('edit_name').value = layup.name ?? '';
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeEditLayupModal() {
+        const modal = document.getElementById('editLayupModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // click outside
+    document.getElementById('editLayupModal').addEventListener('click', function(e){
+        if(e.target === this) closeEditLayupModal();
+    });
+
+    // ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeEditLayupModal();
+    });
 </script>
