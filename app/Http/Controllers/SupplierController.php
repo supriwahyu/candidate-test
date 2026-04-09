@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Supplier;
+use App\Models\CltLayup;
+use App\Models\CltLayer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -78,14 +80,6 @@ class SupplierController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Supplier $supplier)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
@@ -128,6 +122,17 @@ class SupplierController extends Controller
 
             $supplier = Supplier::findOrFail($id);
 
+            // Get layup IDs
+            $layupIds = CltLayup::where('supplier_id', $supplier->id)
+                ->pluck('id');
+
+            // Delete layers
+            CltLayer::whereIn('layup_id', $layupIds)->delete();
+
+            // Delete layups
+            CltLayup::whereIn('id', $layupIds)->delete();
+
+            // Delete supplier
             $supplier->delete();
 
             DB::commit();
