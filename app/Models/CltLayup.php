@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Supplier extends Model
+class CltLayup extends Model
 {
     /**
      * The attributes that are mass assignable.
@@ -12,12 +12,7 @@ class Supplier extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'supplier_id',
         'name',
     ];
-
-    // Supplier.php
-    public function layups()
-    {
-        return $this->hasMany(CltLayup::class);
-    }
 }
