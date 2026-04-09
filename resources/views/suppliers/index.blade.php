@@ -11,8 +11,7 @@
                 </p>
             </div>
 
-            <button 
-                onclick="openModal()"
+            <button onclick="openAddModal()"
                 class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm shadow">
                 + Add Supplier
             </button>
@@ -83,10 +82,11 @@
                                     <!-- Actions -->
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex justify-end gap-3">
-                                            <a href="{{ route('suppliers.edit', $supplier->id) }}"
-                                               class="text-blue-600 hover:underline text-sm">
+                                            <button 
+                                                onclick='openEditModal(@json($supplier))'
+                                                class="text-blue-600 hover:underline text-sm">
                                                 Edit
-                                            </a>
+                                            </button>
 
                                             <form action="{{ route('suppliers.destroy', $supplier->id) }}"
                                                   method="POST"
@@ -127,74 +127,101 @@
         </div>
     </div>
 
-    <!-- Modal Overlay -->
-    <div id="supplierModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+    <!-- ADD MODAL -->
+    <div id="addModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div class="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 relative">
 
-        <!-- Modal Box -->
-        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-xl shadow-lg p-6 relative">
-            
-            <!-- Close Button -->
-            <button onclick="closeModal()" 
-                    class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
-                ✕
-            </button>
+            <button onclick="closeAddModal()" class="absolute top-3 right-3">✕</button>
 
-            <!-- Title -->
-            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                Add Supplier
-            </h2>
+            <h2 class="text-lg font-semibold mb-4">Add Supplier</h2>
 
-            <!-- Form -->
             <form action="{{ route('suppliers.create') }}" method="POST">
                 @csrf
 
-                <!-- Name -->
                 <div class="mb-4">
-                    <label class="block text-sm text-gray-600 dark:text-gray-300 mb-1">
-                        Supplier Name
-                    </label>
+                    <label class="text-sm">Name</label>
                     <input type="text" name="name"
-                           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
-                           required>
+                        class="w-full px-4 py-2 border rounded-lg" required>
                 </div>
 
-                <!-- Actions -->
-                <div class="flex justify-end gap-2 mt-6">
-                    <button type="button"
-                            onclick="closeModal()"
-                            class="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100">
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 border rounded-lg">
                         Cancel
                     </button>
-
-                    <button type="submit"
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                    <button class="bg-green-600 text-white px-4 py-2 rounded-lg">
                         Save
                     </button>
                 </div>
             </form>
+
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div class="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 relative">
+
+            <button onclick="closeEditModal()" class="absolute top-3 right-3">✕</button>
+
+            <h2 class="text-lg font-semibold mb-4">Edit Supplier</h2>
+
+            <form id="editForm" method="POST">
+                @csrf
+                @method('PUT')
+
+                <div class="mb-4">
+                    <label class="text-sm">Name</label>
+                    <input type="text" name="name" id="editName"
+                        class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">
+                        Cancel
+                    </button>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                        Update
+                    </button>
+                </div>
+            </form>
+
         </div>
     </div>
 
 </x-app-layout>
 
 <script>
-    function openModal() {
-        const modal = document.getElementById('supplierModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+    const addModal = document.getElementById('addModal');
+    const editModal = document.getElementById('editModal');
+
+    function openAddModal() {
+        addModal.classList.remove('hidden');
+        addModal.classList.add('flex');
     }
 
-    function closeModal() {
-        const modal = document.getElementById('supplierModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+    function closeAddModal() {
+        addModal.classList.add('hidden');
+        addModal.classList.remove('flex');
     }
 
-    // Close when clicking outside
+    function openEditModal(supplier) {
+        document.getElementById('editName').value = supplier.name;
+
+        // set form action dynamically
+        document.getElementById('editForm').action = `/suppliers/edit/${supplier.id}`;
+
+        editModal.classList.remove('hidden');
+        editModal.classList.add('flex');
+    }
+
+    function closeEditModal() {
+        editModal.classList.add('hidden');
+        editModal.classList.remove('flex');
+    }
+
+    // click outside to close
     window.addEventListener('click', function(e) {
-        const modal = document.getElementById('supplierModal');
-        if (e.target === modal) {
-            closeModal();
-        }
+        if (e.target === addModal) closeAddModal();
+        if (e.target === editModal) closeEditModal();
     });
 </script>

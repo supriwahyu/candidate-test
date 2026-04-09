@@ -118,11 +118,11 @@ class SupplierController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Supplier $supplier)
+    public function destroy(string $id)
     {
         try {
             DB::beginTransaction();
-            
+
             $supplier = Supplier::findOrFail($id);
 
             $supplier->delete();
