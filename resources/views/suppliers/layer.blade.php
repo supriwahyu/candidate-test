@@ -84,7 +84,7 @@
                             <th>Thickness</th>
                             <th>Width</th>
                             <th>Angle</th>
-                            <th>Grade</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y dark:divide-gray-700">
@@ -96,9 +96,18 @@
                             <td>{{ $layer->width }}mm</td>
                             <td>{{ $layer->angle }}°</td>
                             <td>
-                                <span class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded">
-                                    {{ $layer->grade ?? '-' }}
-                                </span>
+                                <!-- Delete -->
+                                <form method="POST"
+                                      action="{{ route('layers.destroy', $layer->id) }}"
+                                      onsubmit="return confirm('Delete this layer?')">
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button type="submit"
+                                        class="text-red-500 hover:text-red-700 text-xs">
+                                        delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         @endforeach

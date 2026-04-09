@@ -68,8 +68,12 @@ class CltLayerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(CltLayer $cltLayer)
+    public function destroy(string $id)
     {
-        //
+        $layer = CltLayer::findOrFail($id);
+
+        $layer->delete();
+
+        return back()->with('success', 'Layup deleted!');
     }
 }
