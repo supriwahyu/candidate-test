@@ -60,6 +60,20 @@
             </div>
         </div>
 
+        @if(session('conflicts') && count(session('conflicts')))
+        <div class="mt-4 bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+            <p class="font-semibold text-sm mb-2">⚠ Import Issues:</p>
+
+            <ul class="text-xs text-gray-700 list-disc ml-4">
+                @foreach(session('conflicts') as $conflict)
+                    <li>
+                        Row {{ $conflict['row'] }} - {{ $conflict['error'] }}
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
         <!-- Table Section -->
         <div class="bg-white rounded-xl shadow-sm p-6 dark:bg-gray-800">
 
@@ -327,16 +341,45 @@
                   enctype="multipart/form-data">
                 @csrf
 
+                <input type="hidden" name="file_temp" value="{{ session('file_temp') }}">
+
                 <!-- Upload Area -->
                 <label class="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer block hover:bg-gray-50">
-                    <input type="file" name="file" class="hidden" required>
+                    <input type="file" name="file" class="hidden" {{ session('preview_tree') ? '' : 'required' }}>
 
                     <div class="text-gray-500">
                         <div class="text-2xl mb-2">☁️</div>
                         <p class="text-sm font-medium">Click to upload or drag and drop</p>
-                        <p class="text-xs text-gray-400">CSV or JSON up to 10MB</p>
+                        <p class="text-xs text-gray-400">XLSX or CSV up to 10MB</p>
                     </div>
                 </label>
+
+                @if(session('file_temp'))
+                    <p class="text-xs text-green-600 mt-2">
+                        File uploaded ✓
+                    </p>
+                @endif
+
+                @if(session('preview_tree'))
+                <div class="mt-4 border rounded-lg p-3 bg-gray-50 max-h-60 overflow-y-auto">
+
+                    <p class="text-sm font-semibold mb-2">📊 Preview Structure</p>
+
+                    @foreach(session('preview_tree') as $supplier => $layups)
+                        <div class="font-semibold text-gray-800">{{ $supplier }}</div>
+
+                        @foreach($layups as $layup => $layers)
+                            <div class="ml-4 text-blue-600">{{ $layup }}</div>
+
+                            @foreach($layers as $layer)
+                                <div class="ml-8 text-gray-600 text-xs">- {{ $layer }}</div>
+                            @endforeach
+
+                        @endforeach
+                    @endforeach
+
+                </div>
+                @endif
 
                 <!-- Conflict Strategy -->
                 <div class="mt-4">
@@ -373,22 +416,44 @@
 
                 <!-- Actions -->
                 <div class="flex justify-end gap-2 mt-6">
+
                     <button type="button"
-                            onclick="closeImportModal()"
-                            class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100">
+                        onclick="closeImportModal()"
+                        class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-100">
                         Cancel
                     </button>
 
-                    <button type="submit"
-                            class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        Confirm Import
-                    </button>
+                    @if(!session('preview_tree'))
+                        <!-- STEP 1: PREVIEW -->
+                        <button type="submit"
+                                name="preview"
+                                value="1"
+                                class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Preview
+                        </button>
+                    @else
+                        <!-- STEP 2: CONFIRM -->
+                        <button type="submit"
+                                class="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Confirm Import
+                        </button>
+                    @endif
+
                 </div>
             </form>
         </div>
     </div>
 
 </x-app-layout>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        @if(session('preview_tree'))
+            document.getElementById('importModal').classList.remove('hidden');
+            document.getElementById('importModal').classList.add('flex');
+        @endif
+    });
+</script>
 
 <script>
     const modal = document.getElementById('layupModal');

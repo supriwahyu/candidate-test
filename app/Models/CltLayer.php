@@ -18,4 +18,9 @@ class CltLayer extends Model
         'width',
         'angle',
     ];
+
+    public function layup()
+    {
+        return $this->belongsTo(CltLayup::class);
+    }
 }

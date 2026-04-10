@@ -155,29 +155,73 @@ class SupplierController extends Controller
         }
     }
 
-    public function import(SupplierRequest $request) 
+    public function import(Request $request, $id)
     {
-        try{
+        $request->validate([
+            'file' => 'nullable|file|mimes:xlsx,csv'
+        ]);
 
-            Excel::import(new SuppliersImport, $request->file('file'));
+        // =========================
+        // 🔍 PREVIEW MODE
+        // =========================
+        if ($request->has('preview')) {
 
-            return response()->json(['data'=>'Supplier imported successfully.',201]);
+            $rows = Excel::toCollection(null, $request->file('file'))->first();
 
-        }catch(\Exception $ex){
+            $tree = [];
+            $currentSupplier = null;
+            $currentLayup = null;
 
-            Log::info($ex);
+            foreach ($rows as $index => $row) {
 
-            return response()->json(['data'=>'Some error has occur.',400]);
+                if ($index === 0) continue;
 
+                $supplier = trim($row[0] ?? '');
+                $layup    = trim($row[1] ?? '');
+                $layer    = trim($row[2] ?? '');
+
+                if ($supplier) {
+                    $currentSupplier = $supplier;
+                    $tree[$supplier] = [];
+                    continue;
+                }
+
+                if ($layup) {
+                    $currentLayup = $layup;
+                    $tree[$currentSupplier][$layup] = [];
+                    continue;
+                }
+
+                if ($layer) {
+                    $tree[$currentSupplier][$currentLayup][] = $layer;
+                }
+            }
+
+            return back()
+                ->with('preview_tree', $tree)
+                ->with('file_temp', $request->file('file')->store('temp'));
         }
-        
+
+        // =========================
+        // 🚀 REAL IMPORT
+        // =========================
+        $path = storage_path('app/private/' . $request->file_temp);
+        // dd($path);
+
+        $import = new SuppliersImport();
+        Excel::import($import, $path);
+
+        return back()->with('success', 'Import success');
     }
 
      /**
     * @return \Illuminate\Support\Collection
     */
-    public function export() 
+    public function export(string $id) 
     {
-        return Excel::download(new SuppliersExport, 'suppliers.xlsx');
+        return Excel::download(
+            new SuppliersExport($id),
+            'supplier_'.$id.'_layers.xlsx'
+        );
     }
 }
