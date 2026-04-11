@@ -168,9 +168,15 @@ class SupplierController extends Controller
 
             $conflicts = $import->getConflicts();
 
+            session([
+                'conflicts' => $import->getConflicts(),
+                'conflict_index' => 0,
+                'show_conflict_modal' => true,
+            ]);
+
             return back()
-                ->with('success', 'Import success')
-                ->with('conflicts', $conflicts);
+                ->with('success', 'Import success');
+                // ->with('conflicts', $conflicts);
         }
 
         // =========================
@@ -235,5 +241,29 @@ class SupplierController extends Controller
             new SuppliersExport($id),
             'supplier_'.$id.'_layers.xlsx'
         );
+    }
+
+    public function selectConflict($index)
+    {
+        $conflicts = session('conflicts', []);
+
+        if (!isset($conflicts[$index])) {
+            return back()->with('error', 'Invalid conflict index');
+        }
+
+        session(['conflict_index' => $index]);
+
+        return back()->with('show_conflict_modal', true);
+    }
+
+    public function clearConflictSession()
+    {
+        session()->forget([
+            'conflicts',
+            'conflict_index',
+            'show_conflict_modal'
+        ]);
+
+        return response()->json(['status' => 'ok']);
     }
 }

@@ -26,6 +26,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
     Route::post('/suppliers/import/{id}', [SupplierController::class, 'import'])->name('suppliers.import');
     Route::get('suppliers/export/{id}', [SupplierController::class, 'export'])->name('suppliers.export');
+    Route::get('/conflict/select/{index}', [SupplierController::class, 'selectConflict']);
+    Route::post('/conflict/clear-session', [SupplierController::class, 'clearConflictSession']);
 
     Route::get('/layups/show/{id}', [CltLayupController::class, 'show'])->name('layups.show');
     Route::delete('/layups/destroy/{id}', [CltLayupController::class, 'destroy'])->name('layups.destroy');

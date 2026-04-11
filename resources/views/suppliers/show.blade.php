@@ -451,17 +451,25 @@
     </div>
 
     @php
-        $conflicts = session('conflicts');
+        $conflicts = session('conflicts', []);
 
-        $activeConflict = $conflicts[0] ?? null;
-        $existing = $activeConflict['existing'] ?? [];
-        $importing = $activeConflict['importing'] ?? [];
+        $activeIndex = session('conflict_index', 0);
+
+        $activeConflict = $conflicts[$activeIndex] ?? null;
+
+        $existing = $activeConflict['existing']['layers'] ?? [];
+        $importing = $activeConflict['importing']['layers'] ?? [];
+
+        $existingLayup = $activeConflict['existing']['layup'] ?? [];
+        $importingLayup = $activeConflict['importing']['layup'] ?? [];
+
         $differences = $activeConflict['differences'] ?? [];
     @endphp
 
     <div id="conflictModal" class="hidden">
         <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div class="bg-white w-full max-w-6xl rounded-xl shadow-lg p-6">
+">
+            <div class="bg-white w-full max-w-6xl rounded-xl shadow-lg p-6 max-h-[90vh]">
 
                 <!-- Header -->
                 <div class="flex justify-between items-center mb-4">
@@ -479,28 +487,70 @@
                 <div class="grid grid-cols-4 gap-4">
 
                     <!-- LEFT SIDEBAR -->
-                    <div class="col-span-1 border rounded-lg p-3">
+                    <div class="col-span-1 border rounded-lg p-3 overflow-auto max-h-[50vh]">
+
+                        @php
+                            $conflicts = session('conflicts', []);
+                            $activeIndex = session('conflict_index', 0);
+                        @endphp
+
                         <h3 class="text-sm font-semibold mb-2 text-gray-600">
-                            ⚠ Conflicting Layups ({{ count(session('conflicts') ?? []) }})
+                            ⚠ Conflicting Layups ({{ count($conflicts) }})
                         </h3>
 
-                        <div class="space-y-2">
-                            @foreach(session('conflicts', []) as $index => $conflict)
-                                <div onclick="selectConflict({{ $index }})"
-                                     class="p-3 rounded-lg border cursor-pointer 
-                                     {{ $loop->first ? 'bg-green-50 border-green-400' : 'hover:bg-gray-50' }}">
-                                    
-                                    <p class="text-sm font-medium">
-                                        {{ $conflict['row'] }}
-                                    </p>
-                                    <p class="text-xs text-gray-500">
-                                        {{ $conflict['error'] }}
-                                    </p>
-                                </div>
-                            @endforeach
-                        </div>
+                        @if(empty($conflicts))
+                            <p class="text-xs text-gray-400">
+                                No conflicts found
+                            </p>
+                        @else
 
-                        <div class="mt-4">
+                            <div class="space-y-2">
+
+                                @foreach($conflicts as $index => $conflict)
+
+                                    @php
+                                        $isActive = $activeIndex == $index;
+
+                                        $layupName =
+                                            $conflict['importing']['layup']['name']
+                                            ?? $conflict['importing']['layup']
+                                            ?? null;
+                                    @endphp
+
+                                    <div onclick="selectConflict({{ $index }})"
+                                         class="p-3 rounded-lg border cursor-pointer transition duration-150
+                                         {{ $isActive
+                                            ? 'bg-green-50 border-green-400'
+                                            : 'hover:bg-gray-50 border-gray-200' }}">
+
+                                        {{-- Layup name (only if exists) --}}
+                                        @if(filled($layupName))
+                                            <p class="text-sm font-medium">
+                                                {{ $layupName }}
+                                            </p>
+                                        @endif
+
+                                        {{-- Error ALWAYS show --}}
+                                        <p class="text-xs text-gray-500">
+                                            {{ $conflict['row'] ?? 'No error message' }}
+                                        </p>
+
+                                        {{-- Optional badge --}}
+                                        @if(isset($conflict['type']))
+                                            <span class="text-[10px] px-2 py-0.5 bg-gray-200 rounded">
+                                                {{ $conflict['type'] }}
+                                            </span>
+                                        @endif
+
+                                    </div>
+
+                                @endforeach
+
+                            </div>
+
+                        @endif
+
+                        <div class="mt-4 ">
                             <h4 class="text-xs text-gray-400 mb-2">RESOLVED</h4>
                             @foreach($resolved ?? [] as $item)
                                 <div class="text-xs text-green-600 flex items-center gap-1">
@@ -516,7 +566,7 @@
                         <!-- Title -->
                         <div class="flex justify-between items-center mb-3">
                             <h3 class="font-semibold">
-                                {{ $activeConflict['code'] ?? 'CLT-5-150-L' }} Comparison
+                                {{ $existingLayup['name'] ?? $importingLayup['name'] ?? 'CLT' }} Comparison
                             </h3>
                             <span class="text-xs bg-gray-100 px-2 py-1 rounded">
                                 {{ count($differences ?? []) }} LAYERS
@@ -539,15 +589,22 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($existing as $i => $row)
-                                            <tr class="text-center border-t">
-                                                <td>{{ $row['order'] }}</td>
-                                                <td class="{{ in_array($i, $differences) ? 'text-red-500 font-semibold' : '' }}">
-                                                    {{ $row['thickness'] }}
-                                                </td>
-                                                <td>{{ $row['width'] }}</td>
-                                                <td>{{ $row['angle'] }}</td>
-                                            </tr>
+                                       @foreach($existing as $row)
+                                        <tr class="text-center border-t">
+                                            <td>{{ $row['layer_order'] }}</td>
+
+                                            <td class="{{ in_array('thickness', $differences) ? 'text-red-500 font-semibold' : '' }}">
+                                                {{ $row['thickness'] }}
+                                            </td>
+
+                                            <td class="{{ in_array('width', $differences) ? 'text-red-500 font-semibold' : '' }}">
+                                                {{ $row['width'] }}
+                                            </td>
+
+                                            <td class="{{ in_array('angle', $differences) ? 'text-red-500 font-semibold' : '' }}">
+                                                {{ $row['angle'] }}
+                                            </td>
+                                        </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -571,16 +628,22 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($importing as $i => $row)
-                                            <tr class="text-center border-t 
-                                                {{ in_array($i, $differences) ? 'bg-red-50' : '' }}">
-                                                <td>{{ $row['order'] }}</td>
-                                                <td class="{{ in_array($i, $differences) ? 'text-red-600 font-semibold' : '' }}">
-                                                    {{ $row['thickness'] }}
-                                                </td>
-                                                <td>{{ $row['width'] }}</td>
-                                                <td>{{ $row['angle'] }}</td>
-                                            </tr>
+                                        @foreach($importing as $row)
+                                        <tr class="text-center border-t">
+                                            <td>{{ $row['layer_order'] ?? '' }}</td>
+
+                                            <td class="{{ in_array('thickness', $differences) ? 'text-red-600 font-semibold' : '' }}">
+                                                {{ $row['thickness'] ?? '' }}
+                                            </td>
+
+                                            <td class="{{ in_array('width', $differences) ? 'text-red-600 font-semibold' : '' }}">
+                                                {{ $row['width'] ?? '' }}
+                                            </td>
+
+                                            <td class="{{ in_array('angle', $differences) ? 'text-red-600 font-semibold' : '' }}">
+                                                {{ $row['angle'] ?? '' }}
+                                            </td>
+                                        </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -768,28 +831,35 @@
 </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let conflicts = @json(session('conflicts') ?? []);
-        let modal = document.getElementById('conflictModal');
-
-        if (!modal) return;
-
-        if (conflicts.length > 0) {
-            // SHOW modal
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        } else {
-            // FORCE HIDE modal
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-    });
-
     function closeModalConflict() {
         const modal = document.getElementById('conflictModal');
+
         if (modal) {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
+        // CLEAR SESSION VIA AJAX
+        fetch("{{ url('/conflict/clear-session') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            }
+        });
     }
 </script>
+
+<script>
+    function selectConflict(index) {
+        window.location.href = "{{ url('/conflict/select') }}/" + index;
+    }
+</script>
+
+@if(session('show_conflict_modal'))
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("conflictModal").classList.remove("hidden");
+        });
+    </script>
+@endif

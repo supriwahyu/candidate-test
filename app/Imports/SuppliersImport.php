@@ -66,6 +66,37 @@ class SuppliersImport implements ToCollection, WithHeadingRow, WithCustomCsvSett
                     continue;
                 }
 
+                // 🟡 NEW: check if ANY layer already exists under same layup name
+                $existingLayers = CltLayer::whereHas('layup', function ($q) use ($layupName) {
+                    $q->where('supplier_id', $this->currentSupplier->id)
+                      ->where('name', $layupName);
+                })->get();
+
+                if ($existingLayers->isNotEmpty()) {
+                    $this->conflicts[] = [
+                        'type' => 'layup_layer_conflict',
+                        'row' => $index + 2,
+                        'error' => 'Layup already has existing layers',
+
+                        'existing' => [
+                            'layers' => $existingLayers->map(function ($l) {
+                                return [
+                                    'layer_order' => $l->layer_order,
+                                    'thickness' => $l->thickness,
+                                    'width' => $l->width,
+                                    'angle' => $l->angle,
+                                ];
+                            })->toArray(),
+                        ],
+
+                        'importing' => [
+                            'layup' => $layupName,
+                        ],
+                    ];
+
+                    continue;
+                }
+
                 $this->currentLayup = CltLayup::firstOrCreate([
                     'supplier_id' => $this->currentSupplier->id,
                     'name' => $layupName,
@@ -79,7 +110,7 @@ class SuppliersImport implements ToCollection, WithHeadingRow, WithCustomCsvSett
 
                 if (!$this->currentLayup) {
                     $this->conflicts[] = [
-                        'row' => $index + 2,
+                        'row' => $layerName,
                         'error' => 'Layer without layup',
                     ];
                     continue;
