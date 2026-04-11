@@ -61,7 +61,7 @@ class SuppliersImport implements ToCollection, WithHeadingRow, WithCustomCsvSett
                 if (!$this->currentSupplier) {
                     $this->conflicts[] = [
                         'row' => $index + 2,
-                        'error' => 'Layup without supplier'
+                        'error' => 'Layup without supplier',
                     ];
                     continue;
                 }
@@ -80,7 +80,7 @@ class SuppliersImport implements ToCollection, WithHeadingRow, WithCustomCsvSett
                 if (!$this->currentLayup) {
                     $this->conflicts[] = [
                         'row' => $index + 2,
-                        'error' => 'Layer without layup'
+                        'error' => 'Layer without layup',
                     ];
                     continue;
                 }
@@ -92,7 +92,7 @@ class SuppliersImport implements ToCollection, WithHeadingRow, WithCustomCsvSett
                 if ($exists) {
                     $this->conflicts[] = [
                         'row' => $index + 2,
-                        'error' => 'Duplicate layer: ' . $layerName
+                        'error' => 'Duplicate layer: ' . $layerName,
                     ];
                     continue;
                 }

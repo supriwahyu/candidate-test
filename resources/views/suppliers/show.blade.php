@@ -325,7 +325,7 @@
 
     <!-- Modal Overlay -->
     <div id="importModal"
-         class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+         class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 overflow-y-auto">
 
         <div class="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 relative">
 
@@ -344,10 +344,16 @@
                 <input type="hidden" name="file_temp" value="{{ session('file_temp') }}">
 
                 <!-- Upload Area -->
-                <label class="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer block hover:bg-gray-50">
-                    <input type="file" name="file" class="hidden" {{ session('preview_tree') ? '' : 'required' }}>
+                <label id="uploadLabel"
+                       class="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer block hover:bg-gray-50 transition">
 
-                    <div class="text-gray-500">
+                    <input type="file"
+                           name="file"
+                           id="fileInput"
+                           class="hidden"
+                           {{ session('preview_tree') ? '' : 'required' }}>
+
+                    <div id="uploadContent" class="text-gray-500">
                         <div class="text-2xl mb-2">☁️</div>
                         <p class="text-sm font-medium">Click to upload or drag and drop</p>
                         <p class="text-xs text-gray-400">XLSX or CSV up to 10MB</p>
@@ -441,6 +447,173 @@
 
                 </div>
             </form>
+        </div>
+    </div>
+
+    @php
+        $conflicts = session('conflicts');
+
+        $activeConflict = $conflicts[0] ?? null;
+        $existing = $activeConflict['existing'] ?? [];
+        $importing = $activeConflict['importing'] ?? [];
+        $differences = $activeConflict['differences'] ?? [];
+    @endphp
+
+    <div id="conflictModal" class="hidden">
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div class="bg-white w-full max-w-6xl rounded-xl shadow-lg p-6">
+
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-lg font-semibold">
+                            Conflict Resolution: Import [{{ $fileName ?? 'file.xlsx' }}]
+                        </h2>
+                        <p class="text-sm text-gray-500">
+                            Please review discrepancies between incoming data and existing records.
+                        </p>
+                    </div>
+                    <button onclick="closeModalConflict()" class="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+
+                <div class="grid grid-cols-4 gap-4">
+
+                    <!-- LEFT SIDEBAR -->
+                    <div class="col-span-1 border rounded-lg p-3">
+                        <h3 class="text-sm font-semibold mb-2 text-gray-600">
+                            ⚠ Conflicting Layups ({{ count(session('conflicts') ?? []) }})
+                        </h3>
+
+                        <div class="space-y-2">
+                            @foreach(session('conflicts', []) as $index => $conflict)
+                                <div onclick="selectConflict({{ $index }})"
+                                     class="p-3 rounded-lg border cursor-pointer 
+                                     {{ $loop->first ? 'bg-green-50 border-green-400' : 'hover:bg-gray-50' }}">
+                                    
+                                    <p class="text-sm font-medium">
+                                        {{ $conflict['row'] }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        {{ $conflict['error'] }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="mt-4">
+                            <h4 class="text-xs text-gray-400 mb-2">RESOLVED</h4>
+                            @foreach($resolved ?? [] as $item)
+                                <div class="text-xs text-green-600 flex items-center gap-1">
+                                    ✔ {{ $item }}
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- MAIN CONTENT -->
+                    <div class="col-span-3">
+
+                        <!-- Title -->
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-semibold">
+                                {{ $activeConflict['code'] ?? 'CLT-5-150-L' }} Comparison
+                            </h3>
+                            <span class="text-xs bg-gray-100 px-2 py-1 rounded">
+                                {{ count($differences ?? []) }} LAYERS
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+
+                            <!-- EXISTING -->
+                            <div class="border rounded-lg p-3">
+                                <h4 class="text-sm font-semibold mb-2">Existing Version</h4>
+
+                                <table class="w-full text-sm">
+                                    <thead class="text-gray-500 text-xs">
+                                        <tr>
+                                            <th>ORDER</th>
+                                            <th>THICKNESS</th>
+                                            <th>WIDTH</th>
+                                            <th>ANGLE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($existing as $i => $row)
+                                            <tr class="text-center border-t">
+                                                <td>{{ $row['order'] }}</td>
+                                                <td class="{{ in_array($i, $differences) ? 'text-red-500 font-semibold' : '' }}">
+                                                    {{ $row['thickness'] }}
+                                                </td>
+                                                <td>{{ $row['width'] }}</td>
+                                                <td>{{ $row['angle'] }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+
+                                <button class="mt-4 w-full border border-green-500 text-green-600 py-2 rounded-lg hover:bg-green-50">
+                                    Keep Existing
+                                </button>
+                            </div>
+
+                            <!-- IMPORTING -->
+                            <div class="border rounded-lg p-3">
+                                <h4 class="text-sm font-semibold mb-2">Importing Version</h4>
+
+                                <table class="w-full text-sm">
+                                    <thead class="text-gray-500 text-xs">
+                                        <tr>
+                                            <th>ORDER</th>
+                                            <th>THICKNESS</th>
+                                            <th>WIDTH</th>
+                                            <th>ANGLE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($importing as $i => $row)
+                                            <tr class="text-center border-t 
+                                                {{ in_array($i, $differences) ? 'bg-red-50' : '' }}">
+                                                <td>{{ $row['order'] }}</td>
+                                                <td class="{{ in_array($i, $differences) ? 'text-red-600 font-semibold' : '' }}">
+                                                    {{ $row['thickness'] }}
+                                                </td>
+                                                <td>{{ $row['width'] }}</td>
+                                                <td>{{ $row['angle'] }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+
+                                <button class="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+                                    Accept New
+                                </button>
+                            </div>
+
+                        </div>
+
+                        <!-- FOOTER NAV -->
+                        <div class="flex justify-between items-center mt-4 text-sm">
+                            <button class="text-gray-500 hover:underline">← Previous Conflict</button>
+
+                            <span class="text-gray-400">
+                                1 of {{ count(session('conflicts', [])) }} discrepancies
+                            </span>
+
+                            <button class="text-green-600 hover:underline">Next Conflict →</button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="mt-4 text-left">
+                    <button onclick="closeModalConflict()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">
+                        Cancel Import
+                    </button>
+                </div>
+
+            </div>
         </div>
     </div>
 
@@ -568,5 +741,55 @@
 
     function closeImportModal() {
         document.getElementById('importModal').classList.add('hidden');
+    }
+</script>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadContent = document.getElementById('uploadContent');
+    const uploadLabel = document.getElementById('uploadLabel');
+
+    fileInput.addEventListener('change', function () {
+        if (this.files.length > 0) {
+            const file = this.files[0];
+
+            uploadContent.innerHTML = `
+                <div class="text-green-600 text-2xl mb-2">✔</div>
+                <p class="text-sm font-semibold text-gray-700">${file.name}</p>
+                <p class="text-xs text-gray-400">
+                    ${(file.size / 1024).toFixed(2)} KB
+                </p>
+                <p class="text-xs text-blue-500 mt-1">Click to change file</p>
+            `;
+
+            uploadLabel.classList.add('border-green-500', 'bg-green-50');
+        }
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let conflicts = @json(session('conflicts') ?? []);
+        let modal = document.getElementById('conflictModal');
+
+        if (!modal) return;
+
+        if (conflicts.length > 0) {
+            // SHOW modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        } else {
+            // FORCE HIDE modal
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    });
+
+    function closeModalConflict() {
+        const modal = document.getElementById('conflictModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
     }
 </script>

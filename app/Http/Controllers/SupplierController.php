@@ -161,6 +161,18 @@ class SupplierController extends Controller
             'file' => 'nullable|file|mimes:xlsx,csv'
         ]);
 
+        if ($request->strategy != 'skip') {
+
+            $import = new SuppliersImport();
+            Excel::import($import, $request->file('file'));
+
+            $conflicts = $import->getConflicts();
+
+            return back()
+                ->with('success', 'Import success')
+                ->with('conflicts', $conflicts);
+        }
+
         // =========================
         // 🔍 PREVIEW MODE
         // =========================
